@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="transfers-layout">
+  <div class="card">
+    <h2 class="card-title">Initiate Ownership Transfer</h2>
+    <p class="muted" style="margin-bottom: 24px; font-size: 13px;">Select a vehicle from the live database to transfer ownership.</p>
+
+    <form method="POST" action="/transfers">
+      <div class="input-group">
+        <select name="plate" class="form-input" required style="cursor:pointer;">
+          <option value="" disabled selected>Select a vehicle...</option>
+          {% for v in vehicles %}
+          <option value="{{ v['plate'] }}">{{ v['plate'] }} - {{ v['make'] }} ({{ v['owner'] }})</option>
+          {% endfor %}
+        </select>
+        <label class="floating-label" style="transform: translateY(-20px) scale(0.85); color: var(--accent);">Vehicle</label>
+      </div>
+
+      <div class="input-group">
+        <input type="text" name="new_owner" class="form-input" required placeholder=" ">
+        <label class="floating-label">New Owner Name</label>
+      </div>
+
+      <div class="form-actions" style="margin-top: 10px;">
+        <button type="submit" class="btn btn-primary">Sign & Transfer</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card history-card">
+    <h2 class="card-title">Current Vehicle Owners</h2>
+    <table class="registry-table">
+      <thead>
+        <tr>
+          <th>Vehicle</th>
+          <th>Current Owner</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in vehicles %}
+        <tr>
+          <td class="plate">{{ v['plate'] }}</td>
+          <td>{{ v['owner'] }}</td>
+          <td><span class="badge-status {{ v['status']|lower }}">{{ v['status'] }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

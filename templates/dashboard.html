@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(46,230,168,0.15);color:#2EE6A8">▦</div>
+    <div class="stat-value" data-count="{{ total }}">0</div>
+    <div class="stat-label">Total Vehicles</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(255,176,32,0.15);color:#FFB020">＋</div>
+    <div class="stat-value" data-count="{{ today_count }}">0</div>
+    <div class="stat-label">Today</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(255,138,61,0.15);color:#FF8A3D">◷</div>
+    <div class="stat-value" data-count="{{ month_count }}">0</div>
+    <div class="stat-label">This Month</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(255,93,93,0.15);color:#FF5D5D">⚠</div>
+    <div class="stat-value" data-count="{{ stolen }}">0</div>
+    <div class="stat-label">Stolen Flags</div>
+  </div>
+</section>
+
+<section class="dashboard-grid">
+  
+  <!-- AI FORECAST -->
+  <div class="card ai-card">
+    <div class="ai-header">
+      <h2 class="card-title">AI Registration Forecast</h2>
+      <span class="badge-status active" id="aiAccuracy">Loading...</span>
+    </div>
+    <div class="ai-content">
+      <div class="ai-main-stat">
+        <h1 id="aiPrediction" class="mono" style="color: var(--accent);">--</h1>
+        <p class="muted">Predicted registrations for next month</p>
+      </div>
+      <div class="ai-metrics">
+        <div class="ai-metric">
+          <span class="muted">Model Accuracy</span>
+          <strong id="aiAccuracyText" style="color: var(--accent-2);">--%</strong>
+        </div>
+        <div class="ai-metric">
+          <span class="muted">Anomalies Detected</span>
+          <strong id="aiAnomalies" style="color: var(--danger);">--</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DONUT CHART -->
+  <div class="card">
+    <h2 class="card-title">Vehicles by Make</h2>
+    <div class="donut-wrap">
+      <svg viewBox="0 0 42 42" class="donut">
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#16231D" stroke-width="6"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#2EE6A8" stroke-width="6" stroke-dasharray="40 60" stroke-dashoffset="25"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#FFB020" stroke-width="6" stroke-dasharray="30 70" stroke-dashoffset="-15"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#FF5D5D" stroke-width="6" stroke-dasharray="15 85" stroke-dashoffset="-45"/>
+        <text x="21" y="22" text-anchor="middle" class="donut-total">{{ total }}</text>
+      </svg>
+      <ul class="legend">
+        <li><span style="background:#2EE6A8"></span>Toyota</li>
+        <li><span style="background:#FFB020"></span>Ford</li>
+        <li><span style="background:#FF5D5D"></span>BMW</li>
+        <li><span style="background:#E7D8B4"></span>Other</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- LINE CHART -->
+  <div class="card">
+    <h2 class="card-title">Historical Volume</h2>
+    <svg viewBox="0 0 600 220" class="line-chart" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="lineFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FFB020" stop-opacity="0.45"/>
+          <stop offset="100%" stop-color="#FFB020" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="M0,180 C80,140 140,90 220,110 C300,130 340,60 420,70 C500,80 560,40 600,30 L600,220 L0,220 Z" fill="url(#lineFill)"/>
+      <path class="draw-line" d="M0,180 C80,140 140,90 220,110 C300,130 340,60 420,70 C500,80 560,40 600,30" fill="none" stroke="#FFB020" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+  <!-- RECENT ACTIVITY FEED -->
+  <div class="card">
+    <h2 class="card-title">Recent Activity</h2>
+    <ul class="activity-feed">
+      {% for v in recent_activity %}
+        <li>
+          <!-- The logic is now outside of the style attribute -->
+          <span class="dot {% if v.status == 'Active' %}dot-active{% elif v.status == 'Stolen' %}dot-stolen{% else %}dot-expiring{% endif %}"></span>
+          <span class="plate">{{ v.plate }}</span> · {{ v.owner }} 
+          <span class="time">Just now</span>
+        </li>
+      {% else %}
+        <li><p class="muted">No recent activity.</p></li>
+      {% endfor %}
+    </ul>
+  </div>
+
+</section>
+
+{% endblock %}

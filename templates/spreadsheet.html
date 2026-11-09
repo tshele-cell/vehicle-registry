@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card" style="overflow-x: auto;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h2 class="card-title" style="margin:0;">Data Classification & GDPR Compliance (Spreadsheet)</h2>
+    <a href="/export_compliance_csv" class="btn btn-primary" style="text-decoration:none;">Export Compliance CSV</a>
+  </div>
+  
+  <table class="registry-table" style="border-collapse: collapse; width: 100%; font-family: 'Inter', sans-serif;">
+    <thead>
+      <tr style="background: var(--card-hover);">
+        <th style="border: 1px solid var(--border);">Data Type</th>
+        <th style="border: 1px solid var(--border);">Classification</th>
+        <th style="border: 1px solid var(--border);">GDPR Requirement</th>
+        <th style="border: 1px solid var(--border);">Compliance Level</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="border: 1px solid var(--border); font-weight:600;">License Plate & VIN</td>
+        <td style="border: 1px solid var(--border);"><span class="badge-status active">Public</span></td>
+        <td style="border: 1px solid var(--border);">Not applicable (Public domain)</td>
+        <td style="border: 1px solid var(--border); color: var(--accent-2);">100% Compliant</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid var(--border); font-weight:600;">Owner Full Name</td>
+        <td style="border: 1px solid var(--border);"><span class="badge-status" style="background:rgba(255,176,32,0.15);color:var(--accent)">Private</span></td>
+        <td style="border: 1px solid var(--border);">Article 15 (Right of Access)</td>
+        <td style="border: 1px solid var(--border); color: var(--accent-2);">100% Compliant</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid var(--border); font-weight:600;">National ID / Address</td>
+        <td style="border: 1px solid var(--border);"><span class="badge-status" style="background:rgba(255,138,61,0.15);color:var(--warning)">Confidential</span></td>
+        <td style="border: 1px solid var(--border);">Article 17 (Right to Erasure)</td>
+        <td style="border: 1px solid var(--border); color: var(--accent-2);">100% Compliant</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid var(--border); font-weight:600;">System Private Keys</td>
+        <td style="border: 1px solid var(--border);"><span class="badge-status stolen">Restricted</span></td>
+        <td style="border: 1px solid var(--border);">Article 32 (Security of Processing)</td>
+        <td style="border: 1px solid var(--border); color: var(--accent-2);">100% Compliant</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

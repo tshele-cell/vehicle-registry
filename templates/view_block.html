@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card" style="max-width: 650px; margin: 0 auto; box-shadow: var(--shadow);">
+  
+  <!-- HEADER ACTIONS (SCREEN ONLY) -->
+  <div class="no-print" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+    <a href="/blockchain" class="btn-text">← Back to Explorer</a>
+    <div style="display:flex; gap:10px;">
+      <a href="/registry" class="btn btn-secondary" style="font-size:12px; padding:6px 12px; text-decoration:none;">View in Registry</a>
+      <button onclick="window.print()" class="btn btn-primary" style="font-size:12px; padding:6px 14px;">🖨 Print Ownership Certificate</button>
+    </div>
+  </div>
+
+  <!-- PRINTABLE OFFICIAL CERTIFICATE BADGE -->
+  <div style="text-align: center; margin-bottom: 24px;">
+    <div class="block-icon" style="width: 56px; height: 56px; font-size: 28px; margin: 0 auto 12px auto; background:rgba(46,230,168,0.12); color:var(--accent-2);">📦</div>
+    <div style="font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase;">Kingdom of Lesotho · Transport Department</div>
+    <h2 style="margin: 6px 0; font-size: 20px;">Official Vehicle Blockchain Certificate</h2>
+    <h1 class="mono" style="color: var(--accent); font-size: 16px; margin-top: 6px; word-break: break-all;">Tx Hash: {{ block['tx_hash'] }}</h1>
+    <span class="badge-status active" style="margin-top: 10px; display:inline-block;">✓ Confirmed on Decentralized Ledger</span>
+  </div>
+
+  <!-- RECEIPT SPECIFICATIONS -->
+  <div class="receipt" style="background: var(--bg); padding: 22px; border-radius: 12px; border: 1px solid var(--border);">
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+      <div>
+        <span class="muted" style="font-size:11px; text-transform:uppercase;">Block Number</span>
+        <div class="mono" style="font-size:16px; font-weight:700; color:var(--text); margin-top:2px;">#{{ block['id'] }}</div>
+      </div>
+      <div>
+        <span class="muted" style="font-size:11px; text-transform:uppercase;">Mining Timestamp</span>
+        <div class="mono" style="font-size:13px; color:var(--text); margin-top:2px;">{{ block['created_at'] }}</div>
+      </div>
+      <div>
+        <span class="muted" style="font-size:11px; text-transform:uppercase;">License Plate</span>
+        <div class="plate" style="font-size: 18px; font-weight:700; color:var(--accent); margin-top:2px;">{{ block['plate'] }}</div>
+      </div>
+      <div>
+        <span class="muted" style="font-size:11px; text-transform:uppercase;">Registry Status</span>
+        <div style="margin-top:2px;"><span class="badge-status {{ block['status']|lower }}">{{ block['status'] }}</span></div>
+      </div>
+      <div style="grid-column: span 2;">
+        <span class="muted" style="font-size:11px; text-transform:uppercase;">Vehicle Identification Number (VIN)</span>
+        <div class="mono" style="font-size:14px; font-weight:600; color:var(--text); margin-top:2px;">{{ block['vin'] }}</div>
+      </div>
+      <div>
+        <span class="muted" style="font-size:11px; text-transform:uppercase;">Vehicle Make / Brand</span>
+        <div style="font-size:14px; font-weight:600; color:var(--text); margin-top:2px;">{{ block['make'] }}</div>
+      </div>
+      <div>
+        <span class="muted" style="font-size:11px; text-transform:uppercase;">Registered Legal Owner</span>
+        <div style="font-size:14px; font-weight:600; color:var(--text); margin-top:2px;">{{ block['owner'] }}</div>
+      </div>
+    </div>
+
+    <!-- CRYPTOGRAPHIC VERIFICATION FOOTER -->
+    <div style="margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--border); font-size: 11px; color: var(--muted); display:flex; justify-content:space-between; align-items:center;">
+      <span>Proof: SHA-256 Hashed State</span>
+      <span class="mono" style="color:var(--accent-2);">Consensus: Validated (PoA)</span>
+    </div>
+  </div>
+</div>
+
+<style>
+@media print {
+  body { background: white !important; color: black !important; }
+  .sidebar, .topbar, .no-print, .theme-toggle { display: none !important; }
+  .card { box-shadow: none !important; border: 1px solid #ccc !important; max-width: 100% !important; }
+  .receipt { background: #f9f9f9 !important; border: 1px solid #ddd !important; }
+  .plate, .mono { color: black !important; }
+}
+</style>
+
+{% endblock %}

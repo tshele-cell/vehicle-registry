@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="verify-container">
+  <div class="verify-hero">
+    <h1 class="verify-title">Verify Vehicle</h1>
+    <p class="muted">Enter a license plate to instantly check its blockchain record.</p>
+    
+    <form method="POST" action="/verify" style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+      <input type="text" name="plate" class="verify-input" placeholder="e.g. NEW 123" style="max-width:300px; border:1px solid var(--border); border-radius:8px;" required>
+      <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+  </div>
+
+  {% if result %}
+    <!-- We use a CSS class now instead of an inline style so VS Code stops complaining -->
+    <div class="card {% if result['status'] == 'Stolen' %}verify-invalid{% else %}verify-valid{% endif %}" style="margin-top: 30px;">
+      
+      <div class="result-header">
+        <h2 class="plate">{{ result['plate'] }}</h2>
+        <span class="badge-status {{ result['status']|lower }}">{{ result['status'] }}</span>
+      </div>
+      
+      <div class="result-body">
+        <p><span class="label">VIN</span> <span class="value mono">{{ result['vin'] }}</span></p>
+        <p><span class="label">Make</span> <span class="value">{{ result['make'] }}</span></p>
+        <p><span class="label">Owner</span> <span class="value">{{ result['owner'] }}</span></p>
+        <p><span class="label">Blockchain Hash</span> <span class="value mono" style="color:var(--accent-2)">{{ result['tx_hash'] }}</span></p>
+      </div>
+      
+    </div>
+
+  {% elif request.method == 'POST' %}
+    <div class="card verify-invalid" style="margin-top: 30px; text-align:center; padding:40px;">
+      <h2 class="plate" style="color:var(--danger);">Not Found</h2>
+      <p class="muted">No vehicle exists on the blockchain with that license plate.</p>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

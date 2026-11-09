@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="settings-header">
+  <div>
+    <h1 class="page-title" style="font-size: 24px; color: var(--accent);">Security Configuration Module</h1>
+    <p class="muted">System Domain · Admin Access Only</p>
+  </div>
+  <div class="badge-status active" style="font-size: 14px; padding: 8px 16px;">Admin Clearance Verified</div>
+</div>
+
+<!-- RBAC MATRIX -->
+<section class="card" style="margin-bottom: 24px;">
+  <h2 class="card-title">Role-Based Access Control (RBAC) Permissions</h2>
+  <p class="muted" style="margin-bottom: 16px; font-size: 13px;">Configure read and write permissions for different actors across the application modules.</p>
+  
+  <div style="overflow-x: auto;">
+    <table class="rbac-table">
+      <thead>
+        <tr>
+          <th>Actor / Role</th>
+          <th>Register</th>
+          <th>Registry (Read)</th>
+          <th>Transfers</th>
+          <th>Reports</th>
+          <th>Verify</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>System Admin</strong></td>
+          <td><label class="toggle-switch"><input type="checkbox" checked disabled><span class="slider"></span></label></td>
+          <td><label class="toggle-switch"><input type="checkbox" checked disabled><span class="slider"></span></label></td>
+          <td><label class="toggle-switch"><input type="checkbox" checked disabled><span class="slider"></span></label></td>
+          <td><label class="toggle-switch"><input type="checkbox" checked disabled><span class="slider"></span></label></td>
+          <td><label class="toggle-switch"><input type="checkbox" checked disabled><span class="slider"></span></label></td>
+        </tr>
+        <tr>
+          <td><strong>Dealer / Registrar</strong></td>
+          <td><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></td>
+          <td><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></td>
+          <td><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></td>
+          <td><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></td>
+          <td><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></td>
+        </tr>
+        <tr>
+          <td><strong>Public User</strong></td>
+          <td><label class="toggle-switch"><input type="checkbox" disabled><span class="slider"></span></label></td>
+          <td><label class="toggle-switch"><input type="checkbox" checked disabled><span class="slider"></span></label></td>
+          <td><label class="toggle-switch"><input type="checkbox" disabled><span class="slider"></span></label></td>
+          <td><label class="toggle-switch"><input type="checkbox" disabled><span class="slider"></span></label></td>
+          <td><label class="toggle-switch"><input type="checkbox" checked disabled><span class="slider"></span></label></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="settings-grid">
+  <!-- DATA CLASSIFICATION -->
+  <section class="card">
+    <h2 class="card-title">Data Classification</h2>
+    <div class="data-list">
+      <div class="data-item">
+        <span class="badge-status active" style="background: rgba(46,230,168,0.15); color: var(--accent-2);">Public</span>
+        <p>License Plate, Make, Model, Year</p>
+      </div>
+      <div class="data-item">
+        <span class="badge-status" style="background: rgba(255,176,32,0.15); color: var(--accent);">Private</span>
+        <p>Owner Full Name, Transfer History</p>
+      </div>
+      <div class="data-item">
+        <span class="badge-status" style="background: rgba(255,138,61,0.15); color: var(--warning);">Confidential</span>
+        <p>National ID, Address, Contact Info</p>
+      </div>
+      <div class="data-item">
+        <span class="badge-status stolen">Restricted</span>
+        <p>System Audit Logs, Blockchain Private Keys</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- GDPR COMPLIANCE -->
+  <section class="card">
+    <h2 class="card-title">GDPR Compliance Levels</h2>
+    <div class="toggle-list">
+      <div class="toggle-row">
+        <div>
+          <strong>Right to be Forgotten</strong>
+          <p class="muted" style="font-size: 12px;">Allows user data off-chain to be purged.</p>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <strong>Data Minimization</strong>
+          <p class="muted" style="font-size: 12px;">Only store strictly necessary PII.</p>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <strong>Encryption at Rest</strong>
+          <p class="muted" style="font-size: 12px;">AES-256 for all local database records.</p>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" checked disabled><span class="slider"></span></label>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- CONNECTION TEST -->
+<section class="card" style="margin-top: 24px; display: flex; justify-content: space-between; align-items: center;">
+  <div>
+    <h2 class="card-title" style="margin-bottom: 4px;">Network Connection</h2>
+    <p class="muted" style="font-size: 13px;">Verify connection to the blockchain node.</p>
+  </div>
+  <div>
+    <button class="btn btn-secondary" id="testConnBtn" onclick="testConnection()">Test Node Connection</button>
+  </div>
+</section>
+
+{% endblock %}

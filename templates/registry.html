@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card" style="margin-bottom: 24px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+    <div>
+      <h2 class="card-title" style="margin:0;">Live Vehicle Registry</h2>
+      <p class="muted" style="font-size:12px; margin-top:4px;">Showing {{ vehicles|length }} of {{ total_matching }} recorded vehicles</p>
+    </div>
+    <div style="display:flex; gap:12px; align-items:center;">
+      <span class="badge-status active">Blockchain Synced</span>
+      <a href="/export_csv" class="btn btn-primary" style="padding: 8px 16px; font-size: 12px; text-decoration:none;">Export CSV (Excel)</a>
+    </div>
+  </div>
+
+  <!-- SEARCH & FILTER BAR -->
+  <form method="GET" action="/registry" style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; background:var(--bg); padding:14px; border-radius:10px; border:1px solid var(--border);">
+    <div style="flex:2; min-width:200px;">
+      <input type="text" name="q" value="{{ search_q }}" class="form-input" placeholder="Search Plate, VIN or Owner..." style="padding:8px 12px; font-size:13px;">
+    </div>
+    <div style="flex:1; min-width:140px;">
+      <select name="status" class="form-input" style="padding:8px 12px; font-size:13px; background:var(--card);">
+        <option value="">All Statuses</option>
+        <option value="Active" {% if status_filter == 'Active' %}selected{% endif %}>Active</option>
+        <option value="Expiring" {% if status_filter == 'Expiring' %}selected{% endif %}>Expiring</option>
+        <option value="Stolen" {% if status_filter == 'Stolen' %}selected{% endif %}>Stolen</option>
+      </select>
+    </div>
+    <div style="flex:1; min-width:140px;">
+      <select name="make" class="form-input" style="padding:8px 12px; font-size:13px; background:var(--card);">
+        <option value="">All Makes</option>
+        {% for m in all_makes %}
+        <option value="{{ m }}" {% if make_filter == m %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button type="submit" class="btn btn-primary" style="padding:8px 16px; font-size:13px;">Filter</button>
+      {% if search_q or status_filter or make_filter %}
+      <a href="/registry" class="btn btn-secondary" style="padding:8px 12px; font-size:13px; text-decoration:none;">Clear</a>
+      {% endif %}
+    </div>
+  </form>
+  
+  <div style="overflow-x: auto;">
+    <table class="registry-table">
+      <thead>
+        <tr>
+          <th>License Plate</th>
+          <th>VIN</th>
+          <th>Make</th>
+          <th>Owner</th>
+          <th>Status</th>
+          <th>Tx Hash</th>
+          <th>Block Link</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in vehicles %}
+        <tr>
+          <td class="plate" style="font-size:15px; font-weight:700;">{{ v.plate }}</td>
+          <td class="mono muted" style="font-size:12px;">{{ v.vin }}</td>
+          <td>{{ v.make }}</td>
+          <td>{{ v.owner }}</td>
+          <td>
+            {% if current_user.role in ['Admin', 'Police'] %}
+              <form method="POST" action="/update_status/{{ v.id }}" style="margin:0;">
+                <select name="status" class="status-select badge-status {{ v.status|lower }}" onchange="this.form.submit()">
+                  <option value="Active" {% if v.status == 'Active' %}selected{% endif %}>Active</option>
+                  <option value="Stolen" {% if v.status == 'Stolen' %}selected{% endif %}>Stolen</option>
+                  <option value="Expiring" {% if v.status == 'Expiring' %}selected{% endif %}>Expiring</option>
+                </select>
+              </form>
+            {% else %}
+              <span class="badge-status {{ v.status|lower }}">{{ v.status }}</span>
+            {% endif %}
+          </td>
+          <td class="mono" style="color:var(--accent-2); font-size:12px;">{{ v.tx_hash }}</td>
+          <td>
+            <a href="/block/{{ v.id }}" class="btn btn-secondary" style="padding:4px 10px; font-size:11px; text-decoration:none;">View Block #{{ v.id }}</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">No matching vehicles found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PAGINATION CONTROLS -->
+  {% if total_pages > 1 %}
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
+    <span class="muted" style="font-size:12px;">Page {{ page }} of {{ total_pages }}</span>
+    <div style="display:flex; gap:6px;">
+      {% if page > 1 %}
+      <a href="/registry?page={{ page - 1 }}&q={{ search_q }}&status={{ status_filter }}&make={{ make_filter }}" class="btn btn-secondary" style="padding:6px 12px; font-size:12px; text-decoration:none;">Previous</a>
+      {% endif %}
+      
+      <span style="padding:6px 12px; font-size:12px; background:var(--card-hover); border-radius:6px; font-weight:600;">{{ page }}</span>
+      
+      {% if page < total_pages %}
+      <a href="/registry?page={{ page + 1 }}&q={{ search_q }}&status={{ status_filter }}&make={{ make_filter }}" class="btn btn-secondary" style="padding:6px 12px; font-size:12px; text-decoration:none;">Next</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

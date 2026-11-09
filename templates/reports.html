@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Load Chart.js for reports data visualization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="reports-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+  <div>
+    <h2 class="page-title" style="font-size:24px; margin:0;">Registry Revenue & Fleet Analytics Reports</h2>
+    <p class="muted" style="margin-top:4px;">Live executive intelligence aggregated across all {{ total_vehicles }} vehicle records</p>
+  </div>
+  <a href="/export_csv" class="btn btn-primary" style="text-decoration:none;">Export Registry CSV</a>
+</div>
+
+<!-- KPI SUMMARY DECK -->
+<section class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
+  <div class="stat-card">
+    <div class="stat-label">Total Revenue Collected</div>
+    <div class="stat-value" style="color: var(--accent);">{{ total_revenue }}</div>
+    <div class="stat-trend up">M 350 statutory fee</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Fleet Size (Database)</div>
+    <div class="stat-value" style="color: var(--text);">{{ total_vehicles }}</div>
+    <div class="stat-trend up">100% In System</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Clearance / Clean Fleet</div>
+    <div class="stat-value" style="color: var(--accent-2);">{{ recovery_rate }}%</div>
+    <div class="stat-trend up">Active Clean Vehicles</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Flagged Stolen</div>
+    <div class="stat-value" style="color: var(--danger);">{{ stolen_count }}</div>
+    <div class="stat-trend">Police Watchlist</div>
+  </div>
+</section>
+
+<!-- CHARTS ROW 1: MONTHLY VOLUME & MONTHLY REVENUE (DUAL CHARTS) -->
+<div class="stats-grid" style="grid-template-columns: 1.6fr 1.4fr; margin-bottom: 24px;">
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div>
+        <h2 class="card-title" style="margin:0;">Monthly Registrations & Revenue Stream</h2>
+        <p class="muted" style="font-size:12px; margin-top:4px;">Volume vs estimated fee collections by month</p>
+      </div>
+      <span class="badge-status active">Live Sync</span>
+    </div>
+    <div style="position: relative; height: 270px; width: 100%;">
+      <canvas id="monthlyVolumeRevenueChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div>
+        <h2 class="card-title" style="margin:0;">Fleet Status Breakdown</h2>
+        <p class="muted" style="font-size:12px; margin-top:4px;">Active vs Expiring vs Stolen</p>
+      </div>
+    </div>
+    <div style="position: relative; height: 270px; width: 100%; display:flex; align-items:center; justify-content:center;">
+      <canvas id="fleetStatusDoughnut"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- CHARTS ROW 2: BRAND REVENUE GENERATION & REGIONAL DISTRICT SPREAD -->
+<div class="stats-grid" style="grid-template-columns: 1.5fr 1.5fr; margin-bottom: 24px;">
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div>
+        <h2 class="card-title" style="margin:0;">Revenue Generation by Brand (Maloti)</h2>
+        <p class="muted" style="font-size:12px; margin-top:4px;">Income generated per manufacturer in descending order</p>
+      </div>
+    </div>
+    <div style="position: relative; height: 280px; width: 100%;">
+      <canvas id="brandRevenueChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div>
+        <h2 class="card-title" style="margin:0;">Regional Registration Distribution (Districts)</h2>
+        <p class="muted" style="font-size:12px; margin-top:4px;">Geographic vehicle intake based on plate prefixes</p>
+      </div>
+    </div>
+    <div style="position: relative; height: 280px; width: 100%; display:flex; align-items:center; justify-content:center;">
+      <canvas id="districtPolarChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- DATA TABLE: PERFORMANCE & REVENUE BY MAKE -->
+<section class="card" style="margin-bottom: 24px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <div>
+      <h2 class="card-title" style="margin:0;">Market Share & Brand Ledger Summary</h2>
+      <p class="muted" style="font-size:12px; margin-top:4px;">Live statistical distribution computed across all vehicles</p>
+    </div>
+  </div>
+  <table class="registry-table">
+    <thead>
+      <tr>
+        <th>Make / Brand</th>
+        <th>Volume</th>
+        <th>Market Share (%)</th>
+        <th>Estimated Revenue</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in makes_data %}
+      <tr>
+        <td><strong>{{ m.make }}</strong></td>
+        <td class="mono">{{ m.volume }}</td>
+        <td>
+          <div class="progress-wrap" style="display:flex; align-items:center; gap:8px;">
+            <div class="progress-bar" style="height:6px; background:var(--accent); border-radius:3px; width: {{ m.share }}%;"></div>
+            <span style="font-size:12px; font-weight:600;">{{ m.share }}%</span>
+          </div>
+        </td>
+        <td class="mono" style="color:var(--accent-2); font-weight:600;">{{ m.revenue }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<!-- CHART.JS RENDER LOGIC -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const chartData = {{ chart_data | safe }};
+
+  // Color Palette
+  const accent1 = "#f59e0b"; // Warm Gold / Ember
+  const accent2 = "#10b981"; // Emerald Jade
+  const danger = "#ef4444";  // Coral Red
+  const cyan = "#06b6d4";
+  const purple = "#8b5cf6";
+  const blue = "#3b82f6";
+  const grayBorder = "rgba(255, 255, 255, 0.1)";
+
+  Chart.defaults.color = "#94a3b8";
+  Chart.defaults.borderColor = grayBorder;
+  Chart.defaults.font.family = "'Inter', sans-serif";
+
+  // 1. Dual-Axis Line/Bar Chart: Monthly Volume & Revenue
+  const volRevCtx = document.getElementById("monthlyVolumeRevenueChart").getContext("2d");
+  new Chart(volRevCtx, {
+    type: "bar",
+    data: {
+      labels: chartData.months,
+      datasets: [
+        {
+          type: "bar",
+          label: "Vehicles Registered",
+          data: chartData.monthly_counts,
+          backgroundColor: "rgba(16, 185, 129, 0.75)",
+          borderRadius: 6,
+          yAxisID: "y"
+        },
+        {
+          type: "line",
+          label: "Revenue (M)",
+          data: chartData.monthly_revenues,
+          borderColor: accent1,
+          backgroundColor: accent1,
+          borderWidth: 3,
+          pointRadius: 4,
+          tension: 0.3,
+          yAxisID: "y1"
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "top" }
+      },
+      scales: {
+        y: {
+          type: "linear",
+          display: true,
+          position: "left",
+          title: { display: true, text: "Volume (Units)" }
+        },
+        y1: {
+          type: "linear",
+          display: true,
+          position: "right",
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: "Revenue (M)" }
+        }
+      }
+    }
+  });
+
+  // 2. Fleet Status Doughnut Chart
+  const statusCtx = document.getElementById("fleetStatusDoughnut").getContext("2d");
+  new Chart(statusCtx, {
+    type: "doughnut",
+    data: {
+      labels: chartData.status_labels,
+      datasets: [{
+        data: chartData.status_counts,
+        backgroundColor: [accent2, accent1, danger],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom" }
+      },
+      cutout: "68%"
+    }
+  });
+
+  // 3. Brand Revenue Horizontal Bar Chart
+  const brandRevCtx = document.getElementById("brandRevenueChart").getContext("2d");
+  new Chart(brandRevCtx, {
+    type: "bar",
+    data: {
+      labels: chartData.makes,
+      datasets: [{
+        label: "Revenue Generated (M)",
+        data: chartData.make_revenues,
+        backgroundColor: [accent1, accent2, cyan, purple, blue, "#ec4899", "#14b8a6", "#f97316", "#64748b", "#84cc16"],
+        borderRadius: 6
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(v) { return "M " + v.toLocaleString(); }
+          }
+        }
+      }
+    }
+  });
+
+  // 4. District Geographic Distribution Polar Area Chart
+  const distCtx = document.getElementById("districtPolarChart").getContext("2d");
+  new Chart(distCtx, {
+    type: "polarArea",
+    data: {
+      labels: chartData.districts,
+      datasets: [{
+        data: chartData.district_counts,
+        backgroundColor: [
+          "rgba(16, 185, 129, 0.7)",
+          "rgba(245, 158, 11, 0.7)",
+          "rgba(6, 182, 212, 0.7)",
+          "rgba(139, 92, 246, 0.7)",
+          "rgba(59, 130, 246, 0.7)",
+          "rgba(239, 68, 68, 0.7)",
+          "rgba(100, 116, 139, 0.7)"
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "right" }
+      }
+    }
+  });
+});
+</script>
+
+{% endblock %}

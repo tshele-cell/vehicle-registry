@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ title }} · VEHICLE REGISTRATION SYSTEM</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <span class="logo-mark">◈</span>
+        <span class="logo-text">VEHICLE REGISTRATION SYSTEM</span>
+      </div>
+      <nav class="nav">
+        <a href="/" class="nav-item {% if active == 'dashboard' %}active{% endif %}"><span class="nav-icon">▦</span><span class="nav-label">Dashboard</span></a>
+        {% if current_user.role in ['Admin', 'Registrar'] %}
+        <a href="/register" class="nav-item {% if active == 'register' %}active{% endif %}"><span class="nav-icon">＋</span><span class="nav-label">Register</span></a>
+        {% endif %}
+        <a href="/registry" class="nav-item {% if active == 'registry' %}active{% endif %}"><span class="nav-icon">▤</span><span class="nav-label">Registry</span></a>
+        <a href="/blockchain" class="nav-item {% if active == 'blockchain' %}active{% endif %}"><span class="nav-icon">⛓</span><span class="nav-label">Blockchain</span></a>
+        <a href="/ai-dashboard" class="nav-item {% if active == 'ai_dashboard' %}active{% endif %}"><span class="nav-icon">🧠</span><span class="nav-label">AI Analytics</span></a>
+        <a href="/spreadsheet" class="nav-item {% if active == 'spreadsheet' %}active{% endif %}"><span class="nav-icon">📊</span><span class="nav-label">Data Specs</span></a>
+        <a href="/verify" class="nav-item {% if active == 'verify' %}active{% endif %}"><span class="nav-icon">✓</span><span class="nav-label">Verify</span></a>
+        {% if current_user.role in ['Admin', 'Registrar'] %}
+        <a href="/transfers" class="nav-item {% if active == 'transfers' %}active{% endif %}"><span class="nav-icon">⇄</span><span class="nav-label">Transfers</span></a>
+        {% endif %}
+        {% if current_user.role in ['Admin', 'Police'] %}
+        <a href="/audit" class="nav-item {% if active == 'audit' %}active{% endif %}"><span class="nav-icon">🛡</span><span class="nav-label">Audit Log</span></a>
+        {% endif %}
+        <a href="/reports" class="nav-item {% if active == 'reports' %}active{% endif %}"><span class="nav-icon">▥</span><span class="nav-label">Reports</span></a>
+        {% if current_user.role == 'Admin' %}
+        <a href="/settings" class="nav-item {% if active == 'settings' %}active{% endif %}"><span class="nav-icon">⚙</span><span class="nav-label">Settings</span></a>
+        {% endif %}
+      </nav>
+      
+      <!-- REMIX LINK FOR LECTURER -->
+      <div style="margin-bottom: 10px; padding: 0 10px;">
+        <a href="https://remix.ethereum.org" target="_blank" class="btn btn-secondary" style="width:100%; font-size:11px; padding:6px;">Open Remix IDE ↗</a>
+      </div>
+
+      <div class="wallet-chip">
+        <span class="connected-dot"></span>
+        <span class="wallet-address">0x7a3f…b92e</span>
+        <button class="theme-toggle" id="themeToggle" title="Toggle theme">☾</button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger" id="hamburger">☰</button>
+          <div>
+            <h1 class="page-title">{{ title }}</h1>
+            <div class="breadcrumb">Home / {{ title }}</div>
+          </div>
+        </div>
+        <div class="topbar-center">
+          <input type="search" class="search-box" placeholder="Search plates, VINs, owners…  (Ctrl+K)" />
+        </div>
+        <div class="topbar-right">
+          <div class="notification-wrapper">
+            <button class="bell" id="bellBtn" title="Notifications">
+              <span>🔔</span><span class="badge" id="notifBadge">{{ recent_vehicles|length }}</span>
+            </button>
+            <div class="notif-dropdown hidden" id="notifDropdown">
+              <div class="notif-header">Recent Registrations</div>
+              {% for v in recent_vehicles %}
+              <div class="notif-item">
+                <span class="dot" style="background:var(--accent-2)"></span>
+                <div><strong>New Registration</strong><br><span class="muted">Plate {{ v.plate }} registered to {{ v.owner }}.</span></div>
+              </div>
+              {% else %}
+              <div class="notif-item"><div class="muted">No recent registrations.</div></div>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="user-profile" style="display:flex; align-items:center; gap:12px;">
+            <div style="display:flex; flex-direction:column; text-align:right;">
+              <span style="font-size:13px; font-weight:600; color:var(--text);">{{ current_user.username|capitalize }}</span>
+              <span style="font-size:11px; color:var(--muted);">{{ current_user.role }}</span>
+            </div>
+            <a href="/logout" class="btn btn-secondary" style="padding: 6px 12px; font-size:12px; border-radius: 8px;">Logout</a>
+          </div>
+        </div>
+      </header>
+      <main class="content">{% block content %}{% endblock %}</main>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <script>
+          document.addEventListener('DOMContentLoaded', () => { showToast("{{ message }}", "{{ 'error' if category == 'error' else 'success' }}"); });
+        </script>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

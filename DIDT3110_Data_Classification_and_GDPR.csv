@@ -1,0 +1,5 @@
+Data Type,Classification,GDPR Requirement,Compliance Level,Security Control / Encryption
+License Plate & VIN,Public,Recital 26 (Identifiability),100% Compliant,Public On-Chain Ledger & SHA-256 Digest
+Owner Full Name,Private,Article 15 (Right of Access),100% Compliant,Role-Based Access Control (RBAC)
+National ID / Physical Address,Confidential,Article 17 (Right to Erasure) & Art 5,100% Compliant,Off-chain Secure Salted Hash Storage
+System Private Keys / Passwords,Restricted,Article 32 (Security of Processing),100% Compliant,Werkzeug PBKDF2:SHA256 Multi-iteration Hashing

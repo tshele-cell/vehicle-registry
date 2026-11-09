@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card register-card" style="max-width: 650px; margin: 0 auto;">
+  <h2 class="card-title">Register New Vehicle</h2>
+  <p class="muted" style="margin-bottom: 24px;">Submit a new vehicle and cryptographic hash to the blockchain ledger.
+  </p>
+
+  <form method="POST" action="/register">
+
+    <div class="input-row" style="display:flex; gap:16px; margin-bottom:16px;">
+      <div class="input-group" style="flex:1;">
+        <input type="text" id="plate" name="plate" class="form-input" placeholder=" " style="text-transform:uppercase;">
+        <label for="plate" class="floating-label">License Plate (e.g. A 892 BC)</label>
+      </div>
+      <div class="input-group" style="flex:1;">
+        <input type="text" id="vin" name="vin" class="form-input" required maxlength="17" placeholder=" "
+          style="text-transform:uppercase;">
+        <label for="vin" class="floating-label">VIN Number (17 chars)</label>
+      </div>
+    </div>
+
+    <div class="input-row" style="display:flex; gap:16px; margin-bottom:16px;">
+      <div class="input-group" style="flex:1;">
+        <input type="text" id="make" name="make" class="form-input" required placeholder=" ">
+        <label for="make" class="floating-label">Make (e.g. Toyota, BMW, Ford)</label>
+      </div>
+      <div class="input-group" style="flex:1;">
+        <input type="text" id="owner" name="owner" class="form-input" required placeholder=" ">
+        <label for="owner" class="floating-label">Owner Full Name</label>
+      </div>
+    </div>
+
+    {% if current_user.role == 'Admin' %}
+    <div class="input-group" style="margin-top: 10px;">
+      <label style="display:block; font-size:12px; font-weight:600; color:var(--accent); margin-bottom:8px;">
+        Admin Security Clearance: Initial Status Override
+      </label>
+      <select name="status" class="form-input" style="cursor:pointer; background:var(--bg);">
+        <option value="Active" selected>Active (Normal Clearance)</option>
+        <option value="Expiring">Expiring (Pending Renewal)</option>
+        <option value="Stolen">Stolen (Flag Anomaly / Crime Watch)</option>
+      </select>
+      <span class="muted" style="font-size:11px; margin-top:4px; display:block;">
+        Flags marked as Stolen will instantly trigger AI Anomaly Detection updates across the AI Analytics dashboard.
+      </span>
+    </div>
+    {% endif %}
+
+    <div class="form-actions" style="margin-top: 30px;">
+      <button type="submit" class="btn btn-primary" style="width:100%; padding:12px; font-size:14px;">Sign & Submit to
+        Blockchain</button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}
