@@ -1,9 +1,9 @@
 id,vin,plate,make,owner,status,tx_hash,created_at
-1,VIN123,A 123 BC,Toyota,Thabo Mokoena,Active,0x8f2a4b1c,2026-11-05 09:16:37
-2,VIN456,B 771 XY,Ford,Lerato Khumalo,Stolen,0x3a1f9c2d,2026-11-05 09:16:37
-3,VIN789,C 902 ZA,BMW,Sipho Dlamini,Expiring,0x9f2a1c3e,2026-11-05 09:16:37
-4,1234354W32454,NEW 556,toyota,lebajoa,Active,0xed679fb1,2026-11-05 09:17:34
-5,VINSTVUG2YC6GG5R7,E 895 LZ,Ford,Refilwe Leche,Expiring,0x5fa1244e,2026-06-02 22:26:37
+1,VIN123,A 123 BC,Toyota,GDPR Anonymized User,Active,0x8f2a4b1c,2026-11-05 09:16:37
+2,VIN456,B 771 XY,Ford,GDPR Anonymized User,Stolen,0x3a1f9c2d,2026-11-05 09:16:37
+3,VIN789,C 902 ZA,BMW,GDPR Anonymized User,Expiring,0x9f2a1c3e,2026-11-05 09:16:37
+4,1234354W32454,NEW 556,toyota,GDPR Anonymized User,Active,0xed679fb1,2026-11-05 09:17:34
+5,VINSTVUG2YC6GG5R7,E 895 LZ,Ford,GDPR Anonymized User,Expiring,0x5fa1244e,2026-06-02 22:26:37
 6,VINNNEJ3RKJNE8AND,E 545 KV,Ford,Mpho Hlasa,Active,0xa61cf9cb,2026-05-27 06:58:25
 7,VIN73LZYUYUMFV4W1,A 464 MF,Mazda,Sarah Moloi,Active,0xbfebf789,2026-02-18 23:39:27
 8,VINDX2HDEXN7E57LN,C 932 UP,Volkswagen,Keketso Smith,Expiring,0x47480976,2026-03-19 15:23:54
@@ -999,3 +999,8 @@ id,vin,plate,make,owner,status,tx_hash,created_at
 998,VIN1BRGHKN09ZETPH,A 711 PN,Isuzu,Katleho Tau,Expiring,0x9c34afb2,2026-09-17 02:17:12
 999,VINPRGFV8AU5GJZUL,C 881 FM,BMW,Michael Mabote,Active,0xdf62677e,2026-02-18 20:07:26
 1000,VING4ST7K9A158R2S,E 885 UK,Ford,Kabelo Phafoli,Active,0x1a8b80c9,2026-08-13 16:05:33
+1002,435676543,E 863 BBP,Toyota,Tshele,Active,0xaca15891,2026-11-09 05:27:59
+1003,12321324567898087,G 214 BBC,Toyota,Monyau,Active,0x005cda9f,2026-11-10 11:31:44
+1004,12345676543,E 811 BCK,Noah,Makhula,Active,0xb2bf9e25,2026-11-10 11:46:18
+1005,123456543,E 122 BBE,Lehips,Sekhantsho,Stolen,0x28c50e00,2026-11-10 11:57:21
+1006,1234543,E 211 BBP,ford,sam,Active,0x5e4f1d6e,2026-11-10 13:19:37

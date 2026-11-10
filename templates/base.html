@@ -16,7 +16,7 @@
       </div>
       <nav class="nav">
         <a href="/" class="nav-item {% if active == 'dashboard' %}active{% endif %}"><span class="nav-icon">▦</span><span class="nav-label">Dashboard</span></a>
-        {% if current_user.role in ['Admin', 'Registrar'] %}
+        {% if current_user.role == 'Admin' or (user_perms and user_perms.get('can_register')) %}
         <a href="/register" class="nav-item {% if active == 'register' %}active{% endif %}"><span class="nav-icon">＋</span><span class="nav-label">Register</span></a>
         {% endif %}
         <a href="/registry" class="nav-item {% if active == 'registry' %}active{% endif %}"><span class="nav-icon">▤</span><span class="nav-label">Registry</span></a>
@@ -24,10 +24,10 @@
         <a href="/ai-dashboard" class="nav-item {% if active == 'ai_dashboard' %}active{% endif %}"><span class="nav-icon">🧠</span><span class="nav-label">AI Analytics</span></a>
         <a href="/spreadsheet" class="nav-item {% if active == 'spreadsheet' %}active{% endif %}"><span class="nav-icon">📊</span><span class="nav-label">Data Specs</span></a>
         <a href="/verify" class="nav-item {% if active == 'verify' %}active{% endif %}"><span class="nav-icon">✓</span><span class="nav-label">Verify</span></a>
-        {% if current_user.role in ['Admin', 'Registrar'] %}
+        {% if current_user.role == 'Admin' or (user_perms and user_perms.get('can_transfer')) %}
         <a href="/transfers" class="nav-item {% if active == 'transfers' %}active{% endif %}"><span class="nav-icon">⇄</span><span class="nav-label">Transfers</span></a>
         {% endif %}
-        {% if current_user.role in ['Admin', 'Police'] %}
+        {% if current_user.role == 'Admin' or (user_perms and user_perms.get('can_audit')) %}
         <a href="/audit" class="nav-item {% if active == 'audit' %}active{% endif %}"><span class="nav-icon">🛡</span><span class="nav-label">Audit Log</span></a>
         {% endif %}
         <a href="/reports" class="nav-item {% if active == 'reports' %}active{% endif %}"><span class="nav-icon">▥</span><span class="nav-label">Reports</span></a>
