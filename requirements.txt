@@ -7,3 +7,4 @@ pandas==3.1.1
 scipy==1.17.1
 Jinja2==3.1.6
 gunicorn==21.2.0
+web3
