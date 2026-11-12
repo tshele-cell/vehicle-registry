@@ -26,21 +26,28 @@
 </div>
 
 <div class="card" style="margin-bottom: 24px;">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+  <div
+    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
     <div>
       <h2 class="card-title" style="margin:0;">Blockchain Explorer & Distributed Ledger</h2>
-      <p class="muted" style="font-size:12px; margin-top:4px;">Distributed Processing · Transparency · Cryptographic Immutability</p>
+      <p class="muted" style="font-size:12px; margin-top:4px;">Distributed Processing · Transparency · Cryptographic
+        Immutability</p>
     </div>
-    <div style="display:flex; gap:10px;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="syncRemix()" id="syncRemixBtn" style="font-size:12px;">
+        🔄 Sync from Remix Contract
+      </button>
       <button class="btn btn-primary" id="verifyLedgerBtn" onclick="runIntegrityAudit()" style="font-size:12px;">
         🛡 Run Cryptographic Audit
       </button>
-      <a href="https://remix.ethereum.org" target="_blank" class="btn btn-secondary" style="font-size:12px; text-decoration:none;">Open Remix IDE ↗</a>
+      <a href="https://remix.ethereum.org" target="_blank" class="btn btn-secondary"
+        style="font-size:12px; text-decoration:none;">↗</a>
     </div>
   </div>
 
   <!-- AUDIT RESULT BANNER (HIDDEN INITIALLY) -->
-  <div id="auditBanner" style="display:none; padding:14px 18px; border-radius:10px; margin-bottom:20px; border:1px solid var(--accent-2); background:rgba(46,230,168,0.08);">
+  <div id="auditBanner"
+    style="display:none; padding:14px 18px; border-radius:10px; margin-bottom:20px; border:1px solid var(--accent-2); background:rgba(46,230,168,0.08);">
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <div>
         <strong style="color:var(--accent-2);" id="auditTitle">✓ Cryptographic Audit Passed</strong>
@@ -52,18 +59,36 @@
 
   <!-- BLOCK SEARCH -->
   <form method="GET" action="/blockchain" style="display:flex; gap:10px; margin-bottom:20px;">
-    <input type="text" name="q" value="{{ search_q or '' }}" class="form-input" placeholder="Search by Plate (e.g. A 123), Tx Hash (e.g. 0x8f2a4b1c), or VIN..." style="padding:10px 14px; font-size:13px; flex:1;">
+    <input type="text" name="q" value="{{ search_q or '' }}" class="form-input"
+      placeholder="Search by Plate (e.g. A 123), Tx Hash (e.g. 0x8f2a4b1c), or VIN..."
+      style="padding:10px 14px; font-size:13px; flex:1;">
     <button type="submit" class="btn btn-primary" style="padding:10px 18px; font-size:13px;">Search Block</button>
     {% if search_q %}
-    <a href="/blockchain" class="btn btn-secondary" style="padding:10px 14px; font-size:13px; text-decoration:none;">Clear</a>
+    <a href="/blockchain" class="btn btn-secondary"
+      style="padding:10px 14px; font-size:13px; text-decoration:none;">Clear</a>
     {% endif %}
   </form>
 
   <!-- SMART CONTRACT PREVIEW -->
-  <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-      <h3 style="font-size:14px; color:var(--accent); margin:0;">Deployed Smart Contract Architecture (VehicleRegistry.sol)</h3>
-      <span class="muted mono" style="font-size:11px;">Solidity ^0.8.0 · EVM Compatible</span>
+  <div
+    style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <div
+      style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+      <div>
+        <h3 style="font-size:14px; color:var(--accent); margin:0;">Deployed Smart Contract Architecture
+          (VehicleRegistry.sol)</h3>
+        <p class="muted mono" style="font-size:12px; margin:4px 0 0 0;">
+          Contract Address: <a href="https://sepolia.etherscan.io/address/0x20eAbeA998F60841C5e6e8a91D52471c6363A737"
+            target="_blank"
+            style="color:var(--accent); text-decoration:underline;">0x20eAbeA998F60841C5e6e8a91D52471c6363A737</a> ↗ ·
+          Network: <code style="color:var(--accent-2);">Ethereum Sepolia (11155111)</code>
+        </p>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <a href="https://sepolia.etherscan.io/address/0x20eAbeA998F60841C5e6e8a91D52471c6363A737" target="_blank"
+          class="btn btn-primary" style="font-size:11px; padding:6px 12px; text-decoration:none;">🔍 View on Etherscan
+          ↗</a>
+      </div>
     </div>
     <pre class="mono" style="font-size: 11px; color: var(--muted); overflow-x: auto; margin:0; line-height:1.5;">
 // SPDX-License-Identifier: MIT
@@ -87,19 +112,30 @@ contract VehicleRegistry {
   </div>
 
   <h3 style="font-size: 16px; margin-bottom: 16px;">Verified Blocks (On-Chain Transactions)</h3>
-  
+
   <div class="blockchain-list">
     {% for b in blocks %}
-    <a href="/block/{{ b.id }}" class="block-card" style="text-decoration: none; color: inherit; display: flex; cursor: pointer;">
+    <a href="/block/{{ b.id }}" class="block-card"
+      style="text-decoration: none; color: inherit; display: flex; cursor: pointer;">
       <div class="block-icon">📦</div>
       <div class="block-details">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <strong>Block #{{ b.id }}</strong>
           <span class="muted mono" style="font-size:11px;">{{ b.created_at }}</span>
         </div>
-        <p class="mono" style="color: var(--accent); font-size: 13px; margin: 8px 0;">Tx Hash: {{ b.tx_hash }}</p>
+        <div
+          style="display:flex; justify-content:space-between; align-items:center; margin: 8px 0; flex-wrap:wrap; gap:4px;">
+          <p class="mono" style="color: var(--accent); font-size: 13px; margin: 0; word-break: break-all;">Tx Hash: {{
+            b.tx_hash }}</p>
+          {% if b.tx_hash and b.tx_hash|length == 66 %}
+          <a href="https://sepolia.etherscan.io/tx/{{ b.tx_hash }}" target="_blank" onclick="event.stopPropagation();"
+            class="btn btn-secondary"
+            style="font-size:11px; padding:3px 8px; text-decoration:none; white-space:nowrap;">Etherscan ↗</a>
+          {% endif %}
+        </div>
         <div style="display:flex; justify-content:space-between; font-size: 12px;">
-          <span class="muted">Plate: <strong style="color:var(--text)">{{ b.plate }}</strong> · Make: {{ b.make }}</span>
+          <span class="muted">Plate: <strong style="color:var(--text)">{{ b.plate }}</strong> · Make: {{ b.make
+            }}</span>
           <span class="badge-status {{ b.status|lower }}">{{ b.status }}</span>
         </div>
       </div>
@@ -111,29 +147,50 @@ contract VehicleRegistry {
 </div>
 
 <script>
-async function runIntegrityAudit() {
-  const btn = document.getElementById("verifyLedgerBtn");
-  const banner = document.getElementById("auditBanner");
-  const desc = document.getElementById("auditDesc");
-  
-  btn.textContent = "⏳ Verifying SHA-256 Hashes...";
-  btn.disabled = true;
-
-  try {
-    const res = await fetch("/api/verify_ledger_integrity");
-    const data = await res.json();
-    
-    banner.style.display = "block";
-    desc.textContent = `All ${data.total_checked} blocks in the distributed database were cryptographically checked against their SHA-256 state hashes. Consensus score: ${data.integrity_score} (${data.consensus_algorithm}). Zero state discrepancies found.`;
-    
-    btn.textContent = "✓ Ledger Verified (100%)";
-  } catch(e) {
-    console.error(e);
-    btn.textContent = "Audit Error";
-  } finally {
-    setTimeout(() => { btn.disabled = false; }, 3000);
+  async function syncRemix() {
+    const btn = document.getElementById("syncRemixBtn");
+    btn.textContent = "⏳ Syncing from Contract...";
+    btn.disabled = true;
+    try {
+      const res = await fetch("/api/sync_remix");
+      const data = await res.json();
+      if (data.synced > 0) {
+        alert(`Successfully synced ${data.synced} new vehicle(s) registered in Remix!`);
+        window.location.reload();
+      } else {
+        btn.textContent = "✓ In Sync with Remix";
+        setTimeout(() => { btn.textContent = "🔄 Sync from Remix Contract"; btn.disabled = false; }, 2500);
+      }
+    } catch (e) {
+      console.error(e);
+      btn.textContent = "Sync Error";
+      btn.disabled = false;
+    }
   }
-}
+
+  async function runIntegrityAudit() {
+    const btn = document.getElementById("verifyLedgerBtn");
+    const banner = document.getElementById("auditBanner");
+    const desc = document.getElementById("auditDesc");
+
+    btn.textContent = "⏳ Verifying SHA-256 Hashes...";
+    btn.disabled = true;
+
+    try {
+      const res = await fetch("/api/verify_ledger_integrity");
+      const data = await res.json();
+
+      banner.style.display = "block";
+      desc.textContent = `All ${data.total_checked} blocks in the distributed database were cryptographically checked against their SHA-256 state hashes. Consensus score: ${data.integrity_score} (${data.consensus_algorithm}). Zero state discrepancies found.`;
+
+      btn.textContent = "✓ Ledger Verified (100%)";
+    } catch (e) {
+      console.error(e);
+      btn.textContent = "Audit Error";
+    } finally {
+      setTimeout(() => { btn.disabled = false; }, 3000);
+    }
+  }
 </script>
 
 {% endblock %}

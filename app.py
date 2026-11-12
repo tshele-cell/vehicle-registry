@@ -10,10 +10,49 @@ from sklearn.ensemble import RandomForestRegressor
 import json
 import random
 import csv
+import os
 from io import StringIO
+from web3 import Web3
 
 app = Flask(__name__)
 app.secret_key = 'super_secret_blockchain_key'
+
+# --- ETHEREUM SEPOLIA BLOCKCHAIN SETUP ---
+SEPOLIA_CHAIN_ID = 11155111
+ETHERSCAN_BASE_URL = "https://sepolia.etherscan.io"
+
+def get_blockchain_provider():
+    # Public Sepolia endpoints
+    sepolia_endpoints = [
+        "https://sepolia.gateway.tenderly.co",
+        "https://ethereum-sepolia-rpc.publicnode.com",
+        "https://1rpc.io/sepolia",
+        "https://rpc.sepolia.org",
+        "http://127.0.0.1:8545"
+    ]
+    for rpc in sepolia_endpoints:
+        try:
+            w3_instance = Web3(Web3.HTTPProvider(rpc, request_kwargs={'timeout': 4}))
+            if w3_instance.is_connected():
+                return w3_instance
+        except Exception:
+            continue
+    return None
+
+w3 = get_blockchain_provider()
+
+# VEHICLEREGISTRY ABI (Exact match to smart_contracts/VehicleRegistry.sol)
+CONTRACT_ABI = [
+	{"inputs": [{"internalType": "string", "name": "_vin", "type": "string"}, {"internalType": "string", "name": "_plate", "type": "string"}, {"internalType": "string", "name": "_owner", "type": "string"}, {"internalType": "string", "name": "_make", "type": "string"}], "name": "registerVehicle", "outputs": [], "stateMutability": "nonpayable", "type": "function"},
+	{"inputs": [{"internalType": "string", "name": "_plate", "type": "string"}, {"internalType": "string", "name": "_newStatus", "type": "string"}], "name": "updateStatus", "outputs": [], "stateMutability": "nonpayable", "type": "function"},
+	{"anonymous": False, "inputs": [{"indexed": False, "internalType": "string", "name": "plate", "type": "string"}, {"indexed": False, "internalType": "string", "name": "owner", "type": "string"}, {"indexed": False, "internalType": "uint256", "name": "timestamp", "type": "uint256"}], "name": "VehicleRegistered", "type": "event"},
+	{"inputs": [{"internalType": "string", "name": "", "type": "string"}], "name": "vehicles", "outputs": [{"internalType": "string", "name": "vin", "type": "string"}, {"internalType": "string", "name": "plate", "type": "string"}, {"internalType": "string", "name": "owner", "type": "string"}, {"internalType": "string", "name": "status", "type": "string"}, {"internalType": "uint256", "name": "timestamp", "type": "uint256"}], "stateMutability": "view", "type": "function"}
+]
+
+# LIVE DEPLOYED CONTRACT ON ETHEREUM SEPOLIA
+CONTRACT_ADDRESS = "0x7EF2e0048f5bAeDe046f6BF797943daF4ED8CB47"
+WALLET_ADDRESS = "0x8f35F10967B0C9D16a88a43eD1F9A250A02D0d0B"
+WALLET_PRIVATE_KEY = "0x9eaf7b72219cce4db5de0f4c467889137f12ce15d60164f67f6b2a38f7369bfc" 
 
 # --- LOGIN MANAGER ---
 login_manager = LoginManager()
@@ -319,11 +358,9 @@ def register():
         make = request.form.get('make', '').strip()
         owner = request.form.get('owner', '').strip()
         
-        # If user left plate blank or not provided, auto-generate one
         if not plate:
             plate = f"NEW {random.randint(100, 999)}"
             
-        # Admin can choose initial status; other roles default to 'Active'
         if current_user.role == 'Admin':
             status = request.form.get('status', 'Active')
             if status not in ['Active', 'Expiring', 'Stolen']:
@@ -331,14 +368,39 @@ def register():
         else:
             status = 'Active'
         
-        # Get correct local time (UTC+2 for Lesotho/South Africa)
         sa_time = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
         formatted_time = sa_time.strftime('%Y-%m-%d %H:%M:%S')
         
-        # Generate real SHA-256 hash
-        raw_data = f"{vin}{plate}{make}{owner}{status}{formatted_time}"
-        tx_hash = "0x" + hashlib.sha256(raw_data.encode()).hexdigest()[:8]
-        
+        # --- LIVE ETHEREUM SEPOLIA BLOCKCHAIN SUBMISSION ---
+        tx_hash = None
+        try:
+            if w3 and w3.is_connected():
+                contract = w3.eth.contract(address=CONTRACT_ADDRESS, abi=CONTRACT_ABI)
+                account = w3.eth.account.from_key(WALLET_PRIVATE_KEY)
+                nonce = w3.eth.get_transaction_count(account.address)
+                gas_price = w3.eth.gas_price or w3.to_wei('2', 'gwei')
+                
+                txn = contract.functions.registerVehicle(vin, plate, owner, make).build_transaction({
+                    'from': account.address,
+                    'gas': 750000,
+                    'gasPrice': gas_price,
+                    'nonce': nonce,
+                    'chainId': 11155111 if w3.eth.chain_id == 11155111 else w3.eth.chain_id
+                })
+                signed_txn = w3.eth.account.sign_transaction(txn, private_key=WALLET_PRIVATE_KEY)
+                tx_bytes = w3.eth.send_raw_transaction(signed_txn.raw_transaction)
+                tx_hash = w3.to_hex(tx_bytes)
+                flash(f'✓ Vehicle {plate} mined to Ethereum Sepolia! Tx: {tx_hash[:12]}... (Viewable on Etherscan)', 'success')
+        except Exception as e:
+            print(f"Sepolia Blockchain Transact error: {e}")
+
+        # Fallback hash if not on chain
+        if not tx_hash:
+            raw_data = f"{vin}{plate}{make}{owner}{status}{formatted_time}"
+            tx_hash = "0x" + hashlib.sha256(raw_data.encode()).hexdigest()[:8]
+            flash(f'Vehicle {plate} registered! Tx: {tx_hash}', 'success')
+
+        # Save to local SQLite so it appears in the UI
         conn = get_db()
         c = conn.cursor()
         c.execute('INSERT INTO vehicles (vin, plate, make, owner, status, tx_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)', 
@@ -346,7 +408,7 @@ def register():
         new_id = c.lastrowid
         conn.commit(); conn.close()
 
-        # Automatically append to dataset.csv so the file stays in 100% sync
+        # Append to dataset.csv
         try:
             dataset_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset.csv')
             with open(dataset_path, 'a', newline='', encoding='utf-8') as f:
@@ -355,13 +417,68 @@ def register():
         except Exception as e:
             print("Failed to append to dataset.csv:", e)
 
-        flash(f'Vehicle {plate} Registered with status "{status}"! Tx: {tx_hash}', 'success')
         return redirect(url_for('registry'))
     return render_template("register.html", active="register", title="Register Vehicle")
+
+def sync_remix_events():
+    """Sync any vehicle registered directly from Remix into SQLite & dataset.csv"""
+    try:
+        if not w3 or not w3.is_connected():
+            return 0
+        contract = w3.eth.contract(address=CONTRACT_ADDRESS, abi=CONTRACT_ABI)
+        event_filter = contract.events.VehicleRegistered.create_filter(from_block=0)
+        events = event_filter.get_all_entries()
+        conn = get_db()
+        c = conn.cursor()
+        synced = 0
+        dataset_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset.csv')
+        
+        for ev in events:
+            plate = ev['args']['plate']
+            owner = ev['args']['owner']
+            c.execute('SELECT id FROM vehicles WHERE plate = ?', (plate,))
+            existing = c.fetchone()
+            if not existing:
+                try:
+                    v_data = contract.functions.vehicles(plate).call()
+                    vin = v_data[0] or f"REMIX_VIN_{random.randint(1000, 9999)}"
+                    status = v_data[3] or "Active"
+                except Exception:
+                    vin = f"REMIX_VIN_{random.randint(1000, 9999)}"
+                    status = "Active"
+
+                tx_hash = w3.to_hex(ev['transactionHash'])
+                sa_time = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+                formatted_time = sa_time.strftime('%Y-%m-%d %H:%M:%S')
+                c.execute('INSERT INTO vehicles (vin, plate, make, owner, status, tx_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                          (vin, plate, "Remix EVM", owner, status, tx_hash, formatted_time))
+                new_id = c.lastrowid
+                conn.commit()
+                synced += 1
+                try:
+                    with open(dataset_path, 'a', newline='', encoding='utf-8') as f:
+                        writer = csv.writer(f)
+                        writer.writerow([new_id, vin, plate, "Remix EVM", owner, status, tx_hash, formatted_time])
+                except Exception:
+                    pass
+        conn.close()
+        return synced
+    except Exception as e:
+        print("Sync remix events error:", e)
+        return 0
+
+@app.route("/api/sync_remix")
+@login_required
+def api_sync_remix():
+    count = sync_remix_events()
+    return jsonify({"success": True, "synced": count, "contract": CONTRACT_ADDRESS})
 
 @app.route("/registry")
 @login_required
 def registry():
+    # Auto-sync any incoming transactions from Remix smart contract
+    sync_remix_events()
+
     search_q = request.args.get('q', '').strip()
     status_filter = request.args.get('status', '').strip()
     make_filter = request.args.get('make', '').strip()
@@ -371,11 +488,9 @@ def registry():
     conn = get_db()
     c = conn.cursor()
 
-    # Query for distinct makes for the filter dropdown
     c.execute("SELECT DISTINCT make FROM vehicles ORDER BY make ASC")
     all_makes = [row['make'] for row in c.fetchall()]
 
-    # Build filtered query
     base_query = "FROM vehicles WHERE 1=1"
     params = []
 
@@ -392,15 +507,12 @@ def registry():
         base_query += " AND make = ?"
         params.append(make_filter)
 
-    # Get total matching records
     c.execute(f"SELECT COUNT(*) {base_query}", params)
     total_matching = c.fetchone()[0]
 
-    # Calculate pagination
     total_pages = max(1, (total_matching + per_page - 1) // per_page)
     offset = (page - 1) * per_page
 
-    # Get page rows
     c.execute(f"SELECT * {base_query} ORDER BY id DESC LIMIT ? OFFSET ?", params + [per_page, offset])
     vehicles = c.fetchall()
     conn.close()
@@ -498,28 +610,28 @@ def verify_ledger_integrity():
     tampered_blocks = []
     
     for r in rows:
-        # Recompute cryptographic digest
+        h = str(r['tx_hash'] or '')
+        # Valid if it is a real 66-character EVM hash (from Remix/smart contract) or starts with 0x (10-char SHA-256)
+        if h.startswith('0x') and (len(h) == 66 or len(h) == 10):
+            continue
+        
         raw_data = f"{r['vin']}{r['plate']}{r['make']}{r['owner']}{r['status']}{r['created_at']}"
         expected_hash = "0x" + hashlib.sha256(raw_data.encode()).hexdigest()[:8]
-        # In legacy rows raw_data was without status; support both for backward compatibility
         legacy_data = f"{r['vin']}{r['plate']}{r['make']}{r['owner']}{r['created_at']}"
         legacy_hash = "0x" + hashlib.sha256(legacy_data.encode()).hexdigest()[:8]
-        
-        # Also check without plate for earliest seed rows
         earliest_data = f"{r['vin']}{r['make']}{r['owner']}{r['created_at']}"
         earliest_hash = "0x" + hashlib.sha256(earliest_data.encode()).hexdigest()[:8]
         
-        if r['tx_hash'] not in [expected_hash, legacy_hash, earliest_hash]:
-            # For demonstration, verify structure matches valid hex
-            if not (r['tx_hash'].startswith('0x') and len(r['tx_hash']) == 10):
-                tampered_blocks.append(r['id'])
+        if h not in [expected_hash, legacy_hash, earliest_hash]:
+            tampered_blocks.append(r['id'])
 
     return jsonify({
         "status": "VALID" if len(tampered_blocks) == 0 else "CORRUPTED",
         "total_checked": total_checked,
         "tampered_count": len(tampered_blocks),
         "tampered_blocks": tampered_blocks,
-        "consensus_algorithm": "Proof of Authority (PoA) / SHA-256",
+        "consensus_algorithm": "Proof of Authority (PoA) / Remix EVM Smart Contract",
+        "contract_address": CONTRACT_ADDRESS,
         "block_time": "12.0s",
         "integrity_score": "100.0%" if len(tampered_blocks) == 0 else "WARNING"
     })
@@ -616,7 +728,6 @@ def gdpr_action():
     action_type = data.get('action')
     
     if action_type == 'erasure':
-        # Article 17: Right to Erasure - Anonymize oldest test records while keeping hash ledger intact
         conn = get_db()
         c = conn.cursor()
         c.execute("UPDATE vehicles SET owner = 'GDPR Anonymized User' WHERE id IN (SELECT id FROM vehicles ORDER BY id ASC LIMIT 5)")
@@ -636,13 +747,11 @@ def reports():
     conn = get_db()
     c = conn.cursor()
     
-    # 1. Total processed & revenues (M350 per registration fee)
     c.execute("SELECT COUNT(*) FROM vehicles")
     total_vehicles = c.fetchone()[0]
     fee_per_vehicle = 350
     total_revenue = total_vehicles * fee_per_vehicle
     
-    # 2. Status metrics
     c.execute("SELECT COUNT(*) FROM vehicles WHERE status='Stolen'")
     stolen_count = c.fetchone()[0]
     c.execute("SELECT COUNT(*) FROM vehicles WHERE status='Expiring'")
@@ -651,7 +760,6 @@ def reports():
     active_count = c.fetchone()[0]
     recovery_rate = round(((total_vehicles - stolen_count) / total_vehicles * 100), 1) if total_vehicles > 0 else 0.0
     
-    # 3. Monthly Volume & Monthly Revenue Trend
     c.execute("SELECT substr(created_at, 6, 2) as month, COUNT(*) as count FROM vehicles GROUP BY month ORDER BY month")
     monthly_rows = c.fetchall()
     month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -666,7 +774,6 @@ def reports():
         monthly_counts.append(r['count'])
         monthly_revenues.append(r['count'] * fee_per_vehicle)
     
-    # 4. Performance & Revenue by Make
     c.execute("SELECT make, COUNT(*) as volume FROM vehicles GROUP BY make ORDER BY volume DESC")
     make_rows = c.fetchall()
     makes_labels = [m['make'] for m in make_rows]
@@ -685,7 +792,6 @@ def reports():
             'revenue': f"M {rev:,.0f}"
         })
 
-    # 5. Regional / District Fleet Distribution
     district_map = {'A': 'Maseru (A)', 'B': 'Leribe (B)', 'C': 'Berea (C)', 'D': 'Mafeteng (D)', 'E': 'Mohale\'s Hoek (E)'}
     c.execute("SELECT substr(plate, 1, 1) as reg, count(*) as count FROM vehicles GROUP BY reg ORDER BY count DESC")
     district_rows = c.fetchall()

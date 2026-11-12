@@ -6,7 +6,12 @@
   <!-- HEADER ACTIONS (SCREEN ONLY) -->
   <div class="no-print" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
     <a href="/blockchain" class="btn-text">← Back to Explorer</a>
-    <div style="display:flex; gap:10px;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      {% if block['tx_hash'] and block['tx_hash']|length == 66 %}
+      <a href="https://sepolia.etherscan.io/tx/{{ block['tx_hash'] }}" target="_blank" class="btn btn-secondary" style="font-size:12px; padding:6px 12px; text-decoration:none; display:flex; align-items:center; gap:4px;">
+        <span>🔍</span> View on Etherscan ↗
+      </a>
+      {% endif %}
       <a href="/registry" class="btn btn-secondary" style="font-size:12px; padding:6px 12px; text-decoration:none;">View in Registry</a>
       <button onclick="window.print()" class="btn btn-primary" style="font-size:12px; padding:6px 14px;">🖨 Print Ownership Certificate</button>
     </div>
