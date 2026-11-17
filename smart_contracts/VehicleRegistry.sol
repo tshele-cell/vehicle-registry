@@ -5,7 +5,7 @@ contract VehicleRegistry {
     
     struct Vehicle {
         string vin;
-        string plate;
+        string plateee;
         string owner;
         string status;
         uint256 timestamp;
